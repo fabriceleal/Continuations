@@ -27,15 +27,17 @@ let max_k x y k =
 let print_d (x : int) = 
     printfn "%d" x;;
 
-// this:
-let g n = n + 1
-let f n = g(n + 1) + 1
-printfn "%d" (f(1) + 1)
-// becomes:
-let g_k n k = k(n + 1)
-let f_k n k = g_k(n + 1) (fun x -> k(x + 1))
-f_k 1 (fun x -> printfn "%d" (x + 1))
+let rec factorial n =
+    if n = 0 then
+        1
+    else
+        n * factorial (n-1);;
 
+let rec factorial_k n k =
+    if n = 0 then
+        k(1)
+    else
+        factorial_k (n-1) (fun x -> k(x * n));;
 
 [<EntryPoint>]
 let main argv = 
@@ -46,7 +48,19 @@ let main argv =
     // More CPS Styl-ish
     max_k 1 2 print_d
 
+    // this:
+    let g n = n + 1
+    let f n = g(n + 1) + 1
+    printfn "Normal: %d" (f(1) + 1)
+    // becomes:
+    let g_k n k = k(n + 1)
+    let f_k n k = g_k(n + 1) (fun x -> k(x + 1))
+    f_k 1 (fun x -> printfn "CPS: %d" (x + 1))
 
+    // this:
+    factorial 5 |> printfn "Normal Factorial of 5: %d"
+    // becomes:
+    factorial_k 5 (fun x -> printfn "CPS Factorial of 5: %d" x) |> ignore
     
     // wait
     Console.ReadKey() |> ignore
