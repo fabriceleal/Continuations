@@ -1,7 +1,7 @@
 ﻿open System
 
 // http://www.markhneedham.com/blog/2009/06/22/f-continuation-passing-style/
-
+// http://nathansuniversity.com/cont_.html
 
 // This would work if everything was curried
 let k_combinator (f : 'a -> 'b) (k : 'b -> 'c) =
@@ -39,6 +39,24 @@ let rec factorial_k n k =
     else
         factorial_k (n-1) (fun x -> k(x * n));;
 
+let add_one x = 
+    x + 1
+
+let add_one_k x k =
+    k(x + 1)
+
+let rec sum x =
+    if x = 1 then
+        1
+    else
+        sum(x - 1) + x;;
+
+let rec sum_k x k =
+    if x = 1 then
+        k(1)
+    else
+        sum_k(x - 1) (fun y -> k(x + y));
+
 [<EntryPoint>]
 let main argv = 
 
@@ -62,6 +80,13 @@ let main argv =
     // becomes:
     factorial_k 5 (fun x -> printfn "CPS Factorial of 5: %d" x) |> ignore
     
+    // this:
+    sum 5 |> printfn "Normal sum of 5: %d"
+    // becomes:
+    sum_k 5 (fun t -> printfn "CPS sum of 5: %d" t)
+
+
+
     // wait
     Console.ReadKey() |> ignore
 
