@@ -27,6 +27,7 @@ let max_k x y k =
 let print_d (x : int) = 
     printfn "%d" x;;
 
+// factorial 
 let rec factorial n =
     if n = 0 then
         1
@@ -35,16 +36,18 @@ let rec factorial n =
 
 let rec factorial_k n k =
     if n = 0 then
-        k(1)
+        k 1
     else
         factorial_k (n-1) (fun x -> k(x * n));;
 
+// add_one
 let add_one x = 
-    x + 1
+    x + 1;;
 
 let add_one_k x k =
-    k(x + 1)
+    k(x + 1);;
 
+// sum
 let rec sum x =
     if x = 1 then
         1
@@ -53,9 +56,48 @@ let rec sum x =
 
 let rec sum_k x k =
     if x = 1 then
-        k(1)
+        k 1
     else
-        sum_k(x - 1) (fun y -> k(x + y));
+        sum_k(x - 1) (fun y -> k(x + y));;
+
+// fibo
+let rec fibo n =
+    if n = 0 then
+        1
+    else if n = 1 then
+        1
+        else
+            fibo (n - 1) + fibo (n - 2);;
+
+let rec fibo_k n k =
+    if n = 0 then
+        k 1
+    else if n = 1 then 
+        k 1
+        else
+            let k_new1 = (fun x1 -> 
+                let k_new2 = (fun x2 -> k(x1 + x2))
+                fibo_k (n - 2) k_new2
+            )
+            fibo_k (n - 1) k_new1;;
+
+// nth
+let rec nth n (ls : 'a list) =
+    if ls.IsEmpty then
+        None
+    else if n = 0 then
+        Some(ls.Head)
+    else
+        nth (n - 1) ls.Tail;;
+
+let rec nth_k n (ls : 'a list) k =
+    if ls.IsEmpty then
+        k(None)
+    else if n = 0 then
+        k(Some(ls.Head))
+    else
+        nth_k (n - 1) ls.Tail k
+        
 
 [<EntryPoint>]
 let main argv = 
@@ -76,16 +118,34 @@ let main argv =
     f_k 1 (fun x -> printfn "CPS: %d" (x + 1))
 
     // this:
-    factorial 5 |> printfn "Normal Factorial of 5: %d"
+    factorial 5 |> printfn "Normal Factorial of %d: %d" 5
     // becomes:
-    factorial_k 5 (fun x -> printfn "CPS Factorial of 5: %d" x) |> ignore
+    factorial_k 5 (fun x -> printfn "CPS Factorial of %d: %d" 5 x) |> ignore
     
     // this:
-    sum 5 |> printfn "Normal sum of 5: %d"
+    sum 5 |> printfn "Normal sum of %d: %d" 5
     // becomes:
-    sum_k 5 (fun t -> printfn "CPS sum of 5: %d" t)
+    sum_k 5 (fun t -> printfn "CPS sum of %d: %d" 5 t)
 
+    // this:
+    fibo 9 |> printfn "Normal fibonacci %d: %d" 9
+    // becomes:
+    fibo_k 9 (fun x -> printfn "CPS fibonacci %d: %d" 9 x)
 
+    // this:
+    match (nth 2 [1; 2; 3; 4; 5; 6]) with
+    | Some(n) -> printfn "Normal %dth: %d" 2 n
+    | None -> printfn "Normal %dth: List not big enough!" 2
+    match (nth 15 [1; 2; 3; 4; 5; 6]) with
+    | Some(n) -> printfn "Normal %dth: %d" 15 n
+    | None -> printfn "Normal %dth: List not big enough!" 15
+    // becomes:
+    nth_k 3 [1; 2; 3; 4; 5; 6] (function
+                                | Some(n) -> printfn "CPS %dth: %d" 2 n
+                                | None -> printfn "CPS %dth: List not big enough!" 2)
+    nth_k 15 [1; 2; 3; 4; 5; 6] (function
+                                | Some(n) -> printfn "CPS %dth: %d" 15 n
+                                | None -> printfn "CPS %dth: List not big enough!" 15)
 
     // wait
     Console.ReadKey() |> ignore
